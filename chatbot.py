@@ -21,7 +21,7 @@ class Chatbot:
     # `moviebot` is the default chatbot. Change it to your chatbot's name       #
     #############################################################################
     def __init__(self, is_turbo=False):
-      self.name = 'moviebot'
+      self.name = 'l\'belle'
       self.is_turbo = is_turbo
       self.read_data()
 

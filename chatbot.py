@@ -8,7 +8,7 @@
 ######################################################################
 import csv
 import math
-
+import re
 import numpy as np
 
 from movielens import ratings
@@ -28,6 +28,7 @@ class Chatbot:
       self.porter_stemmer = PorterStemmer()
       self.read_data()
       self.user_vector = []
+      self.NUM_MOVIES_THRESHOLD = 5
 
     #############################################################################
     # 1. WARM UP REPL
@@ -71,6 +72,11 @@ class Chatbot:
       that
         1) extract the relevant information and
         2) transform the information into a response to the user
+      
+      Control flow following spec.  Pulled add_movie(self, user_input) functionality
+      into main function because we need information about the validity of the user_input 
+      in order to inform our response. 
+
       """
       #############################################################################
       # TODO: Implement the extraction and transformation in this method, possibly#
@@ -80,20 +86,31 @@ class Chatbot:
       if self.is_turbo == True:
         response = 'processed %s in creative mode!!' % input
       else:
-        response = 'processed %s in starter mode' % input
+        #response = 'processed %s in starter mode' % input
+        movie = extract_movie(user_input)
+        if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
+        if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
 
-      self.add_movie(input)
-
+        sentiment = extract_sentiment(user_input)
+        if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
+        if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
+        if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+        
+        self.add_to_vector(movie, sentiment)
+        if len(self.add_to_vector) >= self.NUM_MOVIES_THRESHOLD: 
+          response +=  " That\'s enough for me to make a recommendation."
+          recommendation = self.recommend(self.user_vector)
+          response += " I suggest you watch \"{}\".".format(recommendation)
+        else:  response += " Tell me about another movie you have seen."
       return response
 
-    def add_movie(self, user_input):
-      movie = self.extract_movie(user_input)
-      sentiment = self.extract_sentiment(user_input)
-      self.add_to_vector(movie, sentiment)
+    # def add_movie(self, user_input):
+    #   movie = extract_movie(user_input)
+    #   sentiment = extract_sentiment(user_input)
+    #   add_to_vector(movie, sentiment)
 
-    def extract_movie(self, user_input):
-
-      pass
+    def extract_movie(user_input):
+      return re.findall('"([^"]*)"', user_input)
 
     def extract_sentiment(self, user_input):
       num_pos = 0
@@ -116,9 +133,15 @@ class Chatbot:
         return 3
 
 
+<<<<<<< HEAD
     def add_to_vector(self, movie, sentiment):
 
       pass
+=======
+    def add_to_vector(movie, sentiment):
+      self.user_vector.append((movie, sentiment))
+      
+>>>>>>> 2350cba119f9c9f81798262b00ee4248edb5fa18
 
     #############################################################################
     # 3. Movie Recommendation helper functions                                  #

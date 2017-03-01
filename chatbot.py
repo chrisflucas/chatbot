@@ -110,6 +110,8 @@ class Chatbot:
         if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
         if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
         if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+        if sentiment > 4: response = "Wow, you loved \"{}\". Thank you!".format(movie)
+        if sentiment < 2: response = "Wow, you hated \"{}\". Thank you!".format(movie)
         
         self.add_to_vector(movie, sentiment)
         #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
@@ -158,7 +160,7 @@ class Chatbot:
       intensifiers = ["love", "hate", "ador", "favorit", "worst", "realli", "veri"]
       for w in words:
         word = self.porter_stemmer.stem(w)
-        if intensifiers:
+        if word in intensifiers:
           return 1
 
       return 0

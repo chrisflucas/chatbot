@@ -213,6 +213,15 @@ class Chatbot:
       if match.group(2): return "The " + match.group(1)
       return match.group(1)
 
+    def format_series_string(self, series_array):
+      res=''
+      length = len(series_array)-1
+      for i in range(length):
+        res += "\"" + series_array[i]+ "\", "
+      return res + 'or \"'+series_array[length]+"\""        
+
+
+
     def process(self, input):
       """Takes the input string from the REPL and call delegated functions
       that
@@ -237,9 +246,9 @@ class Chatbot:
         elif input.lower() in self.negations:
           self.spelling_clairifcation = ''
           self.original_input=''
-          return "Shoot okay, let\'s try again. Tell me what you were saying."
+          return "Shoot okay, let\'s try again. Tell me what you were saying. Maybe check your spelling too?"
         else:
-          return "I did not get that. Were you talking about \"{}\"?".format(self.spelling_clairifcation)
+          return "I did not get that. Were you talking about \"{}?".format(self.spelling_clairifcation)
       #elif self.series_clarification != '':
       #  return "okay"
       else:
@@ -272,10 +281,11 @@ class Chatbot:
             if closest_movie: 
               self.spelling_clairifcation = closest_movie
               return "Did you mean \"{}\"?".format(closest_movie)
-            else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
+            else: return "Sorry I am not sure what to make of the movie \"{}\". Maybe check your spelling?".format(m)
           else: # Case where it is in series.
             if closest_movie and len(closest_movie) > 1:
-              return "Which \"{}\" movie did you mean?".format(m)
+              closest_movie_string = self.format_series_string(closest_movie)
+              return "Which \"{}\" movie did you mean? I can talk about {}.".format(m, closest_movie_string)
             elif closest_movie and len(closest_movie) == 1:
               movie[i] = closest_movie[0]
               #return "Did you mean \"{}\"?".format(closest_movie[0])
@@ -286,7 +296,7 @@ class Chatbot:
           # movie is in list of movies, but need to check if count > 1
           # give options for years.
       if not self.is_turbo: movie = movie[0] # for starter, only one movie.
-
+      if self.is_turbo and len(movie)==1: movie = movie[0]
 
       sentiment = self.extract_sentiment(input)
       if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)

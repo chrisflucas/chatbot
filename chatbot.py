@@ -13,6 +13,7 @@ import numpy as np
 
 from movielens import ratings
 from random import randint
+from PorterStemmer import PorterStemmer
 
 
 class Chatbot:
@@ -24,6 +25,7 @@ class Chatbot:
     def __init__(self, is_turbo=False):
       self.name = 'l\'belle'
       self.is_turbo = is_turbo
+      self.porter_stemmer = PorterStemmer()
       self.read_data()
       self.user_vector = []
       self.NUM_MOVIES_THRESHOLD = 5
@@ -85,11 +87,11 @@ class Chatbot:
         response = 'processed %s in creative mode!!' % input
       else:
         #response = 'processed %s in starter mode' % input
-        movie = extract_movie(user_input)
+        movie = self.extract_movie(input)
         if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
         if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
 
-        sentiment = extract_sentiment(user_input)
+        sentiment = self.extract_sentiment(input)
         if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
         if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
         if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
@@ -107,16 +109,33 @@ class Chatbot:
     #   sentiment = extract_sentiment(user_input)
     #   add_to_vector(movie, sentiment)
 
-    def extract_movie(user_input):
+    def extract_movie(self, user_input):
       return re.findall('"([^"]*)"', user_input)
 
-    def extract_sentiment(user_input):
-      
-      return 1
+    def extract_sentiment(self, user_input):
+      num_pos = 0
+      num_neg = 0
+
+      for w in user_input.split(" "):
+        word = self.porter_stemmer.stem(w)
+        if word in self.sentiment.keys():
+          sentiment = self.sentiment[word]
+          if sentiment == "pos":
+            num_pos += 1
+          elif sentiment == "neg":
+            num_neg += 1
+
+      if num_pos > num_neg:
+        return 5
+      elif num_neg > num_pos:
+        return 1
+      else:
+        return 3
+
 
     def add_to_vector(movie, sentiment):
       self.user_vector.append((movie, sentiment))
-      
+
 
     #############################################################################
     # 3. Movie Recommendation helper functions                                  #
@@ -130,6 +149,11 @@ class Chatbot:
       self.titles, self.ratings = ratings()
       reader = csv.reader(open('data/sentiment.txt', 'rb'))
       self.sentiment = dict(reader)
+
+      #Go through all sentiment words and change to stemmed version
+      for sentiment_word in self.sentiment.keys():
+        stemmed_word = self.porter_stemmer.stem(sentiment_word)
+        self.sentiment[stemmed_word] = self.sentiment.pop(sentiment_word)
 
 
     def binarize(self):

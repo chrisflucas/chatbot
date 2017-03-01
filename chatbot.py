@@ -100,24 +100,25 @@ class Chatbot:
       if self.is_turbo == True:
         response = 'processed %s in creative mode!!' % input
       else:
-        #response = 'processed %s in starter mode' % input
-        # movie = self.extract_movie(input)
-        # if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
-        # if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
-        # movie = movie[0]
+        response = 'processed %s in starter mode' % input
+        movie = self.extract_movie(input)
+        if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
+        if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
+        movie = movie[0]
 
-        # sentiment = self.extract_sentiment(input)
-        # if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
-        # if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
-        # if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+        sentiment = self.extract_sentiment(input)
+        if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
+        if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
+        if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
         
-        # self.add_to_vector(movie, sentiment)
-        self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
+        self.add_to_vector(movie, sentiment)
+        #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
         if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
-          #response +=  " That\'s enough for me to make a recommendation."
+          response +=  " That\'s enough for me to make a recommendation."
           recommendation = self.recommend()
-          response = " I suggest you watch \"{}\".".format(recommendation)
-        else:  response += " Tell me about another movie you have seen."
+          response += " I suggest you watch \"{}\".".format(recommendation)
+        else:
+          response += " Tell me about another movie you have seen."
       return response
 
     # def add_movie(self, user_input):
@@ -132,6 +133,8 @@ class Chatbot:
       num_pos = 0
       num_neg = 0
 
+      intensity = self.gauge_intensity(user_input)
+
       for w in user_input.split(" "):
         word = self.porter_stemmer.stem(w)
         if word in self.sentiment.keys():
@@ -142,11 +145,23 @@ class Chatbot:
             num_neg += 1
 
       if num_pos > num_neg:
-        return 5
+        return (4 + intensity)
       elif num_neg > num_pos:
-        return 1
+        return (2 - intensity)
       else:
         return 3
+
+    def gauge_intensity(self, user_input):
+      if "!" in user_input:
+        return 1
+      words = user_input.split(" ")
+      intensifiers = ["love", "hate", "ador", "favorit", "worst", "realli", "veri"]
+      for w in words:
+        word = self.porter_stemmer.stem(w)
+        if intensifiers:
+          return 1
+
+      return 0
 
 
     def add_to_vector(self, movie, sentiment):

@@ -71,7 +71,7 @@ class Chatbot:
       #############################################################################
       # TODO: Write a short greeting message                                      #
       #############################################################################
-
+      self.multiple_move_sentiment(1,1)
       greeting_message = 'What do you want?'
 
       #############################################################################
@@ -327,6 +327,15 @@ class Chatbot:
     #   movie = extract_movie(user_input)
     #   sentiment = extract_sentiment(user_input)
     #   add_to_vector(movie, sentiment)
+
+    #assumes movies are spelled correctly
+    def multiple_move_sentiment(self, movies_vect, user_input):
+      user_input = "I liked \"Titanic\" and \"Mean Girls\""
+      movies_vect = ["The Titanic", "Mean Girls"]
+
+      user_input = user_input.split("and").split("but").split("or")
+      print user_input
+
 
     def extract_movie(self, user_input):
       return re.findall('"([^"]*)"', user_input)

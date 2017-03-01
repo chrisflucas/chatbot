@@ -23,12 +23,26 @@ class Chatbot:
     # `moviebot` is the default chatbot. Change it to your chatbot's name       #
     #############################################################################
     def __init__(self, is_turbo=False):
+      def extract_movie_titles():
+        tits = []
+        for movie_array in self.titles:
+          title = movie_array[0]
+          m = re.search('\([1-3][0-9]{3}\)', title)
+          if not m: m = re.search('\([1-3][0-9]{3} ?-\)', title) # Edge case regex for (2007-)
+          if not m: m = m = re.search('\([1-3][0-9]{3} ?- ?[1-3][0-9]{3}\)', title) # Edge case regex for (2007-2013)
+          if m: 
+            year = m.group(0)
+            tits.append(title[:title.index(year)].strip())
+          else: tits.append(title)
+        return tits
       self.name = 'l\'belle'
       self.is_turbo = is_turbo
       self.porter_stemmer = PorterStemmer()
       self.read_data()
+      self.movie_titles = extract_movie_titles()
       self.user_vector = []
-      self.NUM_MOVIES_THRESHOLD = 5
+      self.NUM_MOVIES_THRESHOLD = 1
+
 
     #############################################################################
     # 1. WARM UP REPL
@@ -182,7 +196,17 @@ class Chatbot:
       pass
 
     def format_vec(self):
-      return []
+      '''
+      Creates user vector based on their ratings for each movie in our movie matrix.
+      This is normally going to be a VERY sparse vector. Used for computing cosine 
+      similarity.
+      '''
+      num_movies = len(self.movie_titles)
+      fv = [0] * num_movies
+      for movie, rating in self.user_vector:
+        curr_pos = self.movie_titles.index(movie)
+        fv[curr_pos] = rating
+      return fv
 
     def generate_matrix(self, v):
       return []

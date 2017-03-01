@@ -14,6 +14,7 @@ import numpy as np
 from movielens import ratings
 from random import randint
 
+
 class Chatbot:
     """Simple class to implement the chatbot for PA 6."""
 
@@ -24,6 +25,7 @@ class Chatbot:
       self.name = 'l\'belle'
       self.is_turbo = is_turbo
       self.read_data()
+      self.user_vector = []
 
     #############################################################################
     # 1. WARM UP REPL
@@ -78,8 +80,26 @@ class Chatbot:
       else:
         response = 'processed %s in starter mode' % input
 
+      self.add_movie(user_input)
+
       return response
 
+    def add_movie(user_input):
+      movie = extract_movie(user_input)
+      sentiment = extract_sentiment(user_input)
+      add_to_vector(movie, sentiment)
+
+    def extract_movie(user_input):
+
+      pass
+
+    def extract_sentiment(user_input):
+      
+      return 1
+
+    def add_to_vector(movie, sentiment):
+
+      pass
 
     #############################################################################
     # 3. Movie Recommendation helper functions                                  #

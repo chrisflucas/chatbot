@@ -133,10 +133,15 @@ class Chatbot:
 
     def extract_sentiment(self, user_input):
       score = 0
-      intensity = self.gauge_intensity(user_input)
 
+      #take out movie name
       movie_name = "\""+self.extract_movie(user_input)[0]+"\""
       user_input = user_input.replace(movie_name, "")
+
+      #determine fine sentiment
+      intensity = self.gauge_intensity(user_input)
+
+      #calculate sentiment
       for ind, w in enumerate(user_input.split(" ")):
         word = self.porter_stemmer.stem(w)
         if word in self.sentiment.keys():

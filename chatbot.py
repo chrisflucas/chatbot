@@ -14,6 +14,7 @@ import numpy as np
 from movielens import ratings
 from random import randint
 from PorterStemmer import PorterStemmer
+from copy import copy, deepcopy
 
 
 class Chatbot:
@@ -29,6 +30,7 @@ class Chatbot:
       self.read_data()
       self.user_vector = []
       self.NUM_MOVIES_THRESHOLD = 5
+      self.generate_matrix([])
 
     #############################################################################
     # 1. WARM UP REPL
@@ -184,8 +186,27 @@ class Chatbot:
     def format_vec(self):
       return []
 
-    def generate_matrix(self, v):
-      return []
+    def generate_matrix(self, user_vector):
+      ##### DELETE THIS
+      user_vector = [0]*len(self.titles)
+
+      means_vector = [0]*len(self.titles)
+      for index, movie in enumerate(self.ratings):
+        total = np.sum(movie) + user_vector[index]
+        length = np.count_nonzero(movie)
+        if user_vector[index] != 0:
+          length += 1
+        if length > 0:
+          means_vector[index] = total/length
+
+      mean_centered_matrix = deepcopy(self.ratings)
+      for movie_index, movie in enumerate(self.ratings):
+        for rating_index, movie_rating in enumerate(movie):
+          if self.ratings[movie_index][rating_index] != 0:
+            centered_rate = self.ratings[movie_index][rating_index] - means_vector[movie_index]
+            mean_centered_matrix[movie_index][rating_index] = centered_rate
+
+      return mean_centered_matrix
 
 
     #############################################################################

@@ -11,7 +11,7 @@ import math
 import re
 import numpy as np
 import string
-
+import random
 from movielens import ratings
 from random import randint
 from PorterStemmer import PorterStemmer
@@ -49,6 +49,7 @@ class Chatbot:
       self.user_vector = []
       self.NUM_MOVIES_THRESHOLD = 5
       self.ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+      self.catch_all =["Let's get back to movies.", "Okay, got it.", "Hm that's not really what I want to talk about right now."]
       #print self.movie_titles
 
     #############################################################################
@@ -121,10 +122,10 @@ class Chatbot:
       #      and the correct signal is 'et'. See slide 17 of the noisy channel model.
       ret = []
       for i in range(len(word) - 1):
-          corruptLetters = word[i:i+2]
-          correctLetters = word[i:i+2][::-1]
-          correction = "%s%s%s" % (word[:i], correctLetters,word[i+2:])
-          ret.append(correction)
+        corruptLetters = word[i:i+2]
+        correctLetters = word[i:i+2][::-1]
+        correction = "%s%s%s" % (word[:i], correctLetters,word[i+2:])
+        ret.append(correction)
       return ret
 
     def replaceEdits(self, word):
@@ -151,6 +152,7 @@ class Chatbot:
         self.replaceEdits(word)
 
     def find_closest_movie(self, movie):
+      if not self.is_turbo: return None, True
       potentials = []
       misspelled = True
 
@@ -217,12 +219,23 @@ class Chatbot:
       # calling other functions. Although modular code is not graded, it is       #
       # highly recommended                                                        #
       #############################################################################
-
-      
-
       movie = self.extract_movie(input)
-      if len(movie) == 0: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
-      if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
+      if len(movie) == 0: 
+        if "\"" in input: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
+        if "What is" in input:
+          pronoun = input.split("What is")[1]
+          if "?" in pronoun: pronoun = pronoun[:len(pronoun)-1]
+          return "I don't know what{} is...".format(pronoun)
+        if "Can you" in input:
+          ability = input.split("Can you")[1]
+          if "?" in ability: ability = ability[:len(ability)-1]
+          return "I'm sorry I don't know how to{}".format(ability)
+        if "Where is" in input:
+          location = input.split("Where is")[1]
+          if "?" in location: location = location[:len(location)-1]
+          return "I'm sorry I don't know where{} is...".format(location)
+        return self.catch_all[random.randrange(0, len(self.catch_all))]
+      if len(movie) > 1 and not self.is_turbo: return'Please tell me about one movie at a time. Go ahead.'
       
       for i, m in enumerate(movie):
         movie[i] = self.format_movie(m)
@@ -238,7 +251,10 @@ class Chatbot:
               movie[i] = closest_movie[0]
               #return "Did you mean \"{}\"?".format(closest_movie[0])
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
-      movie = movie[0] # for starter, only one movie.
+        #else:
+          # movie is in list of movies, but need to check if count > 1
+          # give options for years.
+      if not self.is_turbo: movie = movie[0] # for starter, only one movie.
 
 
       sentiment = self.extract_sentiment(input)

@@ -218,10 +218,12 @@ class Chatbot:
       length = len(series_array)-1
       for i in range(length):
         res += "\"" + series_array[i]+ "\", "
-      return res + 'or \"'+series_array[length]+"\""        
+      return res + 'or \"'+series_array[length]+"\""
 
-
-
+    def extract_series_from_list(self, input):
+      for elem in self.series_clarification.split("\""):
+        if input in elem: return elem
+        
     def process(self, input):
       """Takes the input string from the REPL and call delegated functions
       that
@@ -253,7 +255,7 @@ class Chatbot:
         my_input = input
         if "\"" in my_input: my_input = my_input.replace("\"", '') 
         if my_input in self.series_clarification:
-          movie = [input]
+          movie = [self.extract_series_from_list(my_input)]
           input = self.original_input
           self.series_clarification=''
         else:
@@ -261,7 +263,6 @@ class Chatbot:
       else:
         movie = self.extract_movie(input)
         self.original_input=input
-
 
       if len(movie) == 0: 
         if "\"" in input: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'

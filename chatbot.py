@@ -10,6 +10,7 @@ import csv
 import math
 import re
 import numpy as np
+import string
 
 from movielens import ratings
 from random import randint
@@ -141,12 +142,16 @@ class Chatbot:
       #determine fine sentiment
       intensity = self.gauge_intensity(user_input)
 
+      user_input = user_input.translate(None, string.punctuation)
+
       #calculate sentiment
       for ind, w in enumerate(user_input.split(" ")):
         word = self.porter_stemmer.stem(w)
         if word in self.sentiment.keys():
           prev_word = user_input.split(" ")[ind - 1]
           sentiment = self.sentiment[word]
+          if word == "fun" or word == "cool":
+            sentiment = "pos"
           if sentiment == "pos":
             val = 1
           elif sentiment == "neg":

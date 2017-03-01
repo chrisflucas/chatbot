@@ -13,6 +13,7 @@ import numpy as np
 
 from movielens import ratings
 from random import randint
+from PorterStemmer import PorterStemmer
 
 
 class Chatbot:
@@ -24,12 +25,9 @@ class Chatbot:
     def __init__(self, is_turbo=False):
       self.name = 'l\'belle'
       self.is_turbo = is_turbo
+      self.porter_stemmer = PorterStemmer()
       self.read_data()
       self.user_vector = []
-      self.sentiments = process_sentiments()
-
-    def process_sentiments():
-      
 
     #############################################################################
     # 1. WARM UP REPL
@@ -84,24 +82,41 @@ class Chatbot:
       else:
         response = 'processed %s in starter mode' % input
 
-      self.add_movie(user_input)
+      self.add_movie(input)
 
       return response
 
     def add_movie(self, user_input):
-      movie = extract_movie(user_input)
-      sentiment = extract_sentiment(user_input)
-      add_to_vector(movie, sentiment)
+      movie = self.extract_movie(user_input)
+      sentiment = self.extract_sentiment(user_input)
+      self.add_to_vector(movie, sentiment)
 
-    def extract_movie(user_input):
+    def extract_movie(self, user_input):
 
       pass
 
-    def extract_sentiment(user_input):
+    def extract_sentiment(self, user_input):
+      num_pos = 0
+      num_neg = 0
 
-      return 1
+      for w in user_input.split(" "):
+        word = self.porter_stemmer.stem(w)
+        if word in self.sentiment.keys():
+          sentiment = self.sentiment[word]
+          if sentiment == "pos":
+            num_pos += 1
+          elif sentiment == "neg":
+            num_neg += 1
 
-    def add_to_vector(movie, sentiment):
+      if num_pos > num_neg:
+        return 5
+      elif num_neg > num_pos:
+        return 1
+      else:
+        return 3
+
+
+    def add_to_vector(self, movie, sentiment):
 
       pass
 
@@ -117,6 +132,11 @@ class Chatbot:
       self.titles, self.ratings = ratings()
       reader = csv.reader(open('data/sentiment.txt', 'rb'))
       self.sentiment = dict(reader)
+
+      #Go through all sentiment words and change to stemmed version
+      for sentiment_word in self.sentiment.keys():
+        stemmed_word = self.porter_stemmer.stem(sentiment_word)
+        self.sentiment[stemmed_word] = self.sentiment.pop(sentiment_word)
 
 
     def binarize(self):

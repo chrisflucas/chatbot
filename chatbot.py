@@ -90,6 +90,7 @@ class Chatbot:
         movie = self.extract_movie(input)
         if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
         if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
+        movie = movie[0]
 
         sentiment = self.extract_sentiment(input)
         if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
@@ -97,7 +98,7 @@ class Chatbot:
         if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
         
         self.add_to_vector(movie, sentiment)
-        if len(self.add_to_vector) >= self.NUM_MOVIES_THRESHOLD: 
+        if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
           response +=  " That\'s enough for me to make a recommendation."
           recommendation = self.recommend(self.user_vector)
           response += " I suggest you watch \"{}\".".format(recommendation)
@@ -133,7 +134,7 @@ class Chatbot:
         return 3
 
 
-    def add_to_vector(movie, sentiment):
+    def add_to_vector(self, movie, sentiment):
       self.user_vector.append((movie, sentiment))
 
 

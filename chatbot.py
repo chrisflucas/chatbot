@@ -10,7 +10,7 @@ import csv
 import math
 import re
 import numpy as np
-
+import unicodedata
 from movielens import ratings
 from random import randint
 from PorterStemmer import PorterStemmer
@@ -27,14 +27,18 @@ class Chatbot:
       def extract_movie_titles():
         tits = []
         for movie_array in self.titles:
-          title = movie_array[0]
-          m = re.search('\([1-3][0-9]{3}\)', title)
-          if not m: m = re.search('\([1-3][0-9]{3} ?-\)', title) # Edge case regex for (2007-)
-          if not m: m = m = re.search('\([1-3][0-9]{3} ?- ?[1-3][0-9]{3}\)', title) # Edge case regex for (2007-2013)
-          if m: 
-            year = m.group(0)
-            tits.append(title[:title.index(year)].strip())
-          else: tits.append(title)
+          title = self.format_movie(movie_array[0])
+          m = re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, The)", title)
+          if m:
+            title = "The " + m.group(1)
+          tits.append(title.strip())
+          # m = re.search('\([1-3][0-9]{3}\)', title)
+          # if not m: m = re.search('\([1-3][0-9]{3} ?-\)', title) # Edge case regex for (2007-)
+          # if not m: m = m = re.search('\([1-3][0-9]{3} ?- ?[1-3][0-9]{3}\)', title) # Edge case regex for (2007-2013)
+          # if m: 
+          #   year = m.group(0)
+          #   tits.append(title[:title.index(year)].strip())
+          # else: tits.append(title)
         return tits
       self.name = 'l\'belle'
       self.is_turbo = is_turbo
@@ -43,6 +47,8 @@ class Chatbot:
       self.movie_titles = extract_movie_titles()
       self.user_vector = []
       self.NUM_MOVIES_THRESHOLD = 5
+      self.ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+      #print self.movie_titles
 
     #############################################################################
     # 1. WARM UP REPL
@@ -80,6 +86,108 @@ class Chatbot:
     #############################################################################
     # 2. Modules 2 and 3: extraction and transformation                         #
     #############################################################################
+    def deleteEdits(self, word):
+      if len(word) <= 0: return []
+      word = "<"+word
+      ret=[]
+      for i in xrange(1, len(word)):
+        corruptLetters = word[i-1:i+1]
+        correctLetters = corruptLetters[:-1]
+        correction = "%s%s" % (word[1:i], word[i+1:])
+        ret.append(correction)
+      return ret
+
+    def insertEdits(self, word):
+      """Returns a list of edits of 1-insert distance words and rules used to generate them."""
+      # TODO: write this
+      # Tip: you might find EditModel.ALPHABET helpful
+      # Tip: If inserting the letter 'a' as the second character in the word 'test', the corrupt
+      #      signal is 't' and the correct signal is 'ta'. See slide 17 of the noisy channel model.
+      word = "<" + word # append start token
+      ret = []
+      for letter in self.ALPHABET:
+        for i in range(1,len(word)+1): # +1 for inserting at end.
+          corruptLetters = word[i-1]
+          correctLetters = word[i-1] + letter
+          correction = word[1:i] + letter + word[i:]
+          ret.append(correction)
+      return ret
+
+    def transposeEdits(self, word):
+      """Returns a list of edits of 1-transpose distance words and rules used to generate them."""
+      # TODO: write this
+      # Tip: If tranposing letters 'te' in the word 'test', the corrupt signal is 'te'
+      #      and the correct signal is 'et'. See slide 17 of the noisy channel model.
+      ret = []
+      for i in range(len(word) - 1):
+          corruptLetters = word[i:i+2]
+          correctLetters = word[i:i+2][::-1]
+          correction = "%s%s%s" % (word[:i], correctLetters,word[i+2:])
+          ret.append(correction)
+      return ret
+
+    def replaceEdits(self, word):
+      """Returns a list of edits of 1-replace distance words and rules used to generate them."""
+      # TODO: write this
+      # Tip: you might find EditModel.ALPHABET helpful
+      # Tip: If replacing the letter 'e' with 'q' in the word 'test', the corrupt signal is 'e'
+      #      and the correct signal is 'q'. See slide 17 of the noisy channel model.
+      ret = []
+      for letter in self.ALPHABET:
+        for i in range(len(word)):
+          if letter == word[i]: continue
+          corruptLetters = word[i]
+          correctLetters = letter
+          correction = correction = word[:i] + letter + word[i+1:]
+          ret.append(correction)
+      return ret
+
+    def edits(self, word):
+      """Returns a list of tuples of 1-edit distance words """
+      return  self.deleteEdits(word) + \
+        self.insertEdits(word) + \
+        self.transposeEdits(word) + \
+        self.replaceEdits(word)
+
+    def find_closest_movie(self, movie):
+      potentials = []
+      misspelled = True
+      for title in self.movie_titles:
+        if movie in title:
+          potentials.append(title)
+          misspelled = False
+      if not misspelled: return potentials, False
+
+      all_corrections = self.edits(movie)
+      for correction in all_corrections:
+        if correction in self.movie_titles:
+          return correction, True
+
+      for correction in all_corrections:
+        two_edits = self.edits(correction)
+        for second_edit_correction in two_edits:
+          if second_edit_correction in self.movie_titles:
+            return second_edit_correction, True
+      return None, misspelled
+
+    def remove_accents(self, input_str):
+      input_str = input_str.replace('é', 'e').replace('ô', 'o').replace('¡','!').replace('Á', 'A').replace('À','A').replace('Â','A').replace('Ä','A')
+      input_str = input_str.replace('ü', 'u').replace('½', '1/2').replace('³', '3').replace('É', 'E').replace('ó', 'o')
+      input_str = input_str.replace('è', 'e').replace('ö', 'o').replace('í','i').replace('ê', 'e').replace('î', 'i').replace('ì','i')
+      input_str = input_str.replace('û', 'u').replace('ù', 'u').replace('à','a').replace('á','a').replace('ñ','n').replace('â','a')
+      input_str = input_str.replace('ä', 'a').replace('ý','y').replace('å','a').replace('Ê', 'E').replace('æ','ae').replace('Ô','O')
+      input_str=input_str.replace('ò','o').replace('Å','A').replace('ï','i').replace('ß', 'B').replace('ç','c').replace('ë','e')
+      input_str=input_str.replace('ø','o').replace('ã','a').replace('İ','i').replace('ú','u').replace('ı','1')
+      return input_str
+
+    def format_movie(self, movie):
+      movie = self.remove_accents(movie)
+      match = re.match('([\w :;,.\'&/!\[\]\(\)\{\}?*’#·°\"$+@\-]+)(, The)?[\w\(\), :;·,\[\]\(\)\{\}.\'&/!?*’#°\"$+@\-]*(\([0-9]{4}-?\))', movie)
+      if not match: 
+        match = re.match('\([1-3][0-9]{3} ?- ?[1-3][0-9]{3}\)', movie)
+        if not match: return movie
+      if match.group(2): return "The " + match.group(1)
+      return match.group(1)
 
     def process(self, input):
       """Takes the input string from the REPL and call delegated functions
@@ -97,27 +205,42 @@ class Chatbot:
       # calling other functions. Although modular code is not graded, it is       #
       # highly recommended                                                        #
       #############################################################################
-      if self.is_turbo == True:
-        response = 'processed %s in creative mode!!' % input
-      else:
-        #response = 'processed %s in starter mode' % input
-        # movie = self.extract_movie(input)
-        # if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
-        # if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
-        # movie = movie[0]
 
-        # sentiment = self.extract_sentiment(input)
-        # if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
-        # if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
-        # if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
-        
-        # self.add_to_vector(movie, sentiment)
-        self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
-        if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
-          #response +=  " That\'s enough for me to make a recommendation."
-          recommendation = self.recommend()
-          response = " I suggest you watch \"{}\".".format(recommendation)
-        else:  response += " Tell me about another movie you have seen."
+      
+
+      movie = self.extract_movie(input)
+      if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
+      if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
+      
+      for i, m in enumerate(movie):
+        movie[i] = self.format_movie(m)
+        if m not in self.movie_titles:
+          closest_movie, misspelled = self.find_closest_movie(m)
+          if misspelled:
+            if closest_movie: return "Did you mean \"{}\"?".format(closest_movie)
+            else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
+          else: # Case where it is in series.
+            if closest_movie and len(closest_movie) > 1:
+              return "Which \"{}\" movie did you mean?".format(m)
+            elif closest_movie and len(closest_movie) == 1:
+              return "Did you mean \"{}\"?".format(closest_movie[0])
+            else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
+      movie = movie[0] # for starter, only one movie.
+
+
+      sentiment = self.extract_sentiment(input)
+      if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
+      if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
+      if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+      
+      self.add_to_vector(movie, sentiment)
+      #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
+      if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
+        response +=  " That\'s enough for me to make a recommendation."
+        recommendation = self.recommend()
+        response += " I suggest you watch \"{}\".".format(recommendation)
+        # Do you want another recommendation? 
+      else:  response += " Tell me about another movie you have seen."
       return response
 
     # def add_movie(self, user_input):

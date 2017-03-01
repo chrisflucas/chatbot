@@ -133,15 +133,9 @@ class Chatbot:
         return 3
 
 
-<<<<<<< HEAD
-    def add_to_vector(self, movie, sentiment):
-
-      pass
-=======
     def add_to_vector(movie, sentiment):
       self.user_vector.append((movie, sentiment))
-      
->>>>>>> 2350cba119f9c9f81798262b00ee4248edb5fa18
+
 
     #############################################################################
     # 3. Movie Recommendation helper functions                                  #

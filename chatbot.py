@@ -50,6 +50,9 @@ class Chatbot:
       self.NUM_MOVIES_THRESHOLD = 5
       self.ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
       self.catch_all =["Let's get back to movies.", "Okay, got it.", "Hm that's not really what I want to talk about right now."]
+      self.can_array=["I'm sorry I don't know how to{}.", "I can't{}.", "I won't{}", "How do you{}?"]
+      self.where_array=["I'm sorry I don't know where{} is...", "I'll check the map for{}", "I'm not familiar with{}", "I could not tell you where{} is."]
+      self.what_array=["I don't know what{} is...", "Who knows what{} is?", "I'll look up{} and see what I find.", "I'll check{} out and get back to you."]
       #print self.movie_titles
 
     #############################################################################
@@ -225,15 +228,15 @@ class Chatbot:
         if "What is" in input:
           pronoun = input.split("What is")[1]
           if "?" in pronoun: pronoun = pronoun[:len(pronoun)-1]
-          return "I don't know what{} is...".format(pronoun)
+          return self.what_array[random.randrange(0, len(self.what_array))].format(pronoun)
         if "Can you" in input:
           ability = input.split("Can you")[1]
           if "?" in ability: ability = ability[:len(ability)-1]
-          return "I'm sorry I don't know how to{}".format(ability)
+          return self.can_array[random.randrange(0, len(self.can_array))].format(ability)
         if "Where is" in input:
           location = input.split("Where is")[1]
           if "?" in location: location = location[:len(location)-1]
-          return "I'm sorry I don't know where{} is...".format(location)
+          return self.where_array[random.randrange(0, len(self.where_array))].format(location)
         return self.catch_all[random.randrange(0, len(self.catch_all))]
       if len(movie) > 1 and not self.is_turbo: return'Please tell me about one movie at a time. Go ahead.'
       

@@ -10,12 +10,8 @@ import csv
 import math
 import re
 import numpy as np
-<<<<<<< HEAD
-import unicodedata
-=======
 import string
 
->>>>>>> 9f23d04373beeb6218819f93816360b0a8a80133
 from movielens import ratings
 from random import randint
 from PorterStemmer import PorterStemmer

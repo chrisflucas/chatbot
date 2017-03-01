@@ -112,7 +112,7 @@ class Chatbot:
         # if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
         
         # self.add_to_vector(movie, sentiment)
-        self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5)]
+        self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
         if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
           #response +=  " That\'s enough for me to make a recommendation."
           recommendation = self.recommend()
@@ -200,12 +200,13 @@ class Chatbot:
         other_movie_vect = self.mean_centered_matrix[other_movie]
         similarity_vector[other_movie] = self.distance(movie, other_movie_vect)
       numerator = 0
-      denomimnator = sum(similarity_vector)-1 # -1 for its similarity with itself.
+      denomimnator = sum(similarity_vector) # -1 for its similarity with itself.
+      if denomimnator ==0: return 0
       for sim_index, sim_val in enumerate(similarity_vector):
         if sim_val > 0 and sim_index != movie_index:
           numerator += sim_val * self.formatted_vec[sim_index]
+      
       predicted_rating = numerator/denomimnator
-      print denomimnator
       return predicted_rating
 
 
@@ -222,9 +223,8 @@ class Chatbot:
         if val > 0:
           predictions.append((-1, index))
         else:
-          predictions.append(self.find_rating(index))
-      print predictions
-      predictions = sorted(predictions)
+          predictions.append((self.find_rating(index), index))
+      predictions = sorted(predictions,reverse=True)
       
       return self.movie_titles[predictions[0][1]]
       ## Will need to write more functions for computing sims then returning best recommendation. ##

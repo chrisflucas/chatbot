@@ -53,6 +53,13 @@ class Chatbot:
       self.can_array=["I'm sorry I don't know how to{}.", "I can't{}.", "I won't{}", "How do you{}?"]
       self.where_array=["I'm sorry I don't know where{} is...", "I'll check the map for{}", "I'm not familiar with{}", "I could not tell you where{} is."]
       self.what_array=["I don't know what{} is...", "Who knows what{} is?", "I'll look up{} and see what I find.", "I'll check{} out and get back to you."]
+      self.spelling_clairifcation = ''
+      self.original_input = ''
+      self.series_clarification = ''
+      self.year_clarification = ''
+      self.affirmations = ['yeah','yes','y','yea','ya','yes i did', 'i did','mhmm','yep', 'correct']
+      self.negations = ['no','nope','no i didn\'t', 'no i didnt', 'nah', 'no i did not', 'wrong']
+
       #print self.movie_titles
 
     #############################################################################
@@ -222,7 +229,24 @@ class Chatbot:
       # calling other functions. Although modular code is not graded, it is       #
       # highly recommended                                                        #
       #############################################################################
-      movie = self.extract_movie(input)
+      if self.spelling_clairifcation != '' and self.is_turbo:
+        if input.lower() in self.affirmations:
+          movie = [self.spelling_clairifcation]
+          input = self.original_input
+          self.spelling_clairifcation=''
+        elif input.lower() in self.negations:
+          self.spelling_clairifcation = ''
+          self.original_input=''
+          return "Shoot okay, let\'s try again. Tell me what you were saying."
+        else:
+          return "I did not get that. Were you talking about \"{}\"?".format(self.spelling_clairifcation)
+      #elif self.series_clarification != '':
+      #  return "okay"
+      else:
+        movie = self.extract_movie(input)
+        self.original_input=input
+
+
       if len(movie) == 0: 
         if "\"" in input: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
         if "What is" in input:
@@ -245,7 +269,9 @@ class Chatbot:
         if m not in self.movie_titles:
           closest_movie, misspelled = self.find_closest_movie(m)
           if misspelled:
-            if closest_movie: return "Did you mean \"{}\"?".format(closest_movie)
+            if closest_movie: 
+              self.spelling_clairifcation = closest_movie
+              return "Did you mean \"{}\"?".format(closest_movie)
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
           else: # Case where it is in series.
             if closest_movie and len(closest_movie) > 1:
@@ -255,6 +281,8 @@ class Chatbot:
               #return "Did you mean \"{}\"?".format(closest_movie[0])
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
         #else:
+          #if self.movie_titles.count(m) > 1:
+
           # movie is in list of movies, but need to check if count > 1
           # give options for years.
       if not self.is_turbo: movie = movie[0] # for starter, only one movie.
@@ -289,8 +317,12 @@ class Chatbot:
       score = 0
 
       #take out movie name
-      movie_name = "\""+self.extract_movie(user_input)[0]+"\""
-      user_input = user_input.replace(movie_name, "")
+      if self.spelling_clairifcation == '':
+        movie_name = "\""+self.extract_movie(user_input)[0]+"\""
+        user_input = user_input.replace(movie_name, "")
+      else:
+        movie_name = self.spelling_clairifcation
+        user_input = self.original_input
 
       #determine fine sentiment
       intensity = self.gauge_intensity(user_input)

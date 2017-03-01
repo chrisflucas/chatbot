@@ -101,21 +101,22 @@ class Chatbot:
         response = 'processed %s in creative mode!!' % input
       else:
         #response = 'processed %s in starter mode' % input
-        movie = self.extract_movie(input)
-        if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
-        if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
-        movie = movie[0]
+        # movie = self.extract_movie(input)
+        # if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
+        # if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
+        # movie = movie[0]
 
-        sentiment = self.extract_sentiment(input)
-        if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
-        if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
-        if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+        # sentiment = self.extract_sentiment(input)
+        # if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
+        # if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
+        # if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
         
-        self.add_to_vector(movie, sentiment)
+        # self.add_to_vector(movie, sentiment)
+        self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5)]
         if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
-          response +=  " That\'s enough for me to make a recommendation."
+          #response +=  " That\'s enough for me to make a recommendation."
           recommendation = self.recommend()
-          response += " I suggest you watch \"{}\".".format(recommendation)
+          response = " I suggest you watch \"{}\".".format(recommendation)
         else:  response += " Tell me about another movie you have seen."
       return response
 
@@ -181,8 +182,31 @@ class Chatbot:
       """Calculates a given distance function between vectors u and v"""
       # TODO: Implement the distance function between vectors u and v]
       # Note: you can also think of this as computing a similarity measure
+      num = np.dot(u,v)
+      normalize_u = math.sqrt(sum(i*i for i in u)) 
+      normalize_v = math.sqrt(sum(i*i for i in v))
+      if normalize_u == 0 or normalize_v == 0: return 0
+      sim = num/(normalize_v*normalize_u)
 
-      pass
+      return sim
+
+
+    def find_rating(self, movie_index):
+      similarity_vector = [0] * len(self.titles)
+      movie = self.ratings[movie_index]
+      other_movies = np.nonzero(self.formatted_vec)[0]
+      #other movies is vect of indices
+      for other_movie in other_movies:
+        other_movie_vect = self.mean_centered_matrix[other_movie]
+        similarity_vector[other_movie] = self.distance(movie, other_movie_vect)
+      numerator = 0
+      denomimnator = sum(similarity_vector)-1 # -1 for its similarity with itself.
+      for sim_index, sim_val in enumerate(similarity_vector):
+        if sim_val > 0 and sim_index != movie_index:
+          numerator += sim_val * self.formatted_vec[sim_index]
+      predicted_rating = numerator/denomimnator
+      print denomimnator
+      return predicted_rating
 
 
     def recommend(self):
@@ -190,10 +214,20 @@ class Chatbot:
       collaborative filtering"""
       # TODO: Implement a recommendation function that takes a user vector u
       # and outputs a list of movies recommended by the chatbot
-      formmated_vec = self.format_vec()
-      ratings_matrix = self.generate_matrix(formmated_vec)
+      self.formatted_vec = self.format_vec()
+      self.mean_centered_matrix = self.generate_matrix(self.formatted_vec)
+
+      predictions = []
+      for index, val in enumerate(self.formatted_vec):
+        if val > 0:
+          predictions.append((-1, index))
+        else:
+          predictions.append(self.find_rating(index))
+      print predictions
+      predictions = sorted(predictions)
+      
+      return self.movie_titles[predictions[0][1]]
       ## Will need to write more functions for computing sims then returning best recommendation. ##
-      pass
 
     def format_vec(self):
       '''
@@ -209,9 +243,6 @@ class Chatbot:
       return fv
 
     def generate_matrix(self, user_vector):
-      ##### DELETE THIS
-      user_vector = [0]*len(self.titles)
-
       means_vector = [0]*len(self.titles)
       for index, movie in enumerate(self.ratings):
         total = np.sum(movie) + user_vector[index]
@@ -227,7 +258,6 @@ class Chatbot:
           if self.ratings[movie_index][rating_index] != 0:
             centered_rate = self.ratings[movie_index][rating_index] - means_vector[movie_index]
             mean_centered_matrix[movie_index][rating_index] = centered_rate
-
       return mean_centered_matrix
 
 

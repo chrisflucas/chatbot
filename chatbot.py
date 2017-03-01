@@ -26,6 +26,10 @@ class Chatbot:
       self.is_turbo = is_turbo
       self.read_data()
       self.user_vector = []
+      self.sentiments = process_sentiments()
+
+    def process_sentiments():
+      
 
     #############################################################################
     # 1. WARM UP REPL
@@ -84,7 +88,7 @@ class Chatbot:
 
       return response
 
-    def add_movie(user_input):
+    def add_movie(self, user_input):
       movie = extract_movie(user_input)
       sentiment = extract_sentiment(user_input)
       add_to_vector(movie, sentiment)
@@ -94,7 +98,7 @@ class Chatbot:
       pass
 
     def extract_sentiment(user_input):
-      
+
       return 1
 
     def add_to_vector(movie, sentiment):

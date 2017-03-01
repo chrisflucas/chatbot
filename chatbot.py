@@ -100,7 +100,7 @@ class Chatbot:
         self.add_to_vector(movie, sentiment)
         if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
           response +=  " That\'s enough for me to make a recommendation."
-          recommendation = self.recommend(self.user_vector)
+          recommendation = self.recommend()
           response += " I suggest you watch \"{}\".".format(recommendation)
         else:  response += " Tell me about another movie you have seen."
       return response
@@ -171,13 +171,21 @@ class Chatbot:
       pass
 
 
-    def recommend(self, u):
+    def recommend(self):
       """Generates a list of movies based on the input vector u using
       collaborative filtering"""
       # TODO: Implement a recommendation function that takes a user vector u
       # and outputs a list of movies recommended by the chatbot
-
+      formmated_vec = self.format_vec()
+      ratings_matrix = self.generate_matrix(formmated_vec)
+      ## Will need to write more functions for computing sims then returning best recommendation. ##
       pass
+
+    def format_vec(self):
+      return []
+
+    def generate_matrix(self, v):
+      return []
 
 
     #############################################################################

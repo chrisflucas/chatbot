@@ -153,11 +153,22 @@ class Chatbot:
     def find_closest_movie(self, movie):
       potentials = []
       misspelled = True
+
+      #if it's in a series
       for title in self.movie_titles:
         if movie in title:
           potentials.append(title)
           misspelled = False
       if not misspelled: return potentials, False
+
+      #if they added an article
+      format_articles = [movie.split("An "), movie.split("A "), movie.split("The ")]
+      articles = ["An", "A", "The"]
+      for ind, bad_format in enumerate(format_articles):
+        if len(bad_format)>1:
+          movie_title = bad_format[1] + ", " + articles[ind]
+          if movie_title in self.movie_titles:
+            return [bad_format[1]], False
 
       all_corrections = self.edits(movie)
       for correction in all_corrections:
@@ -210,7 +221,7 @@ class Chatbot:
       
 
       movie = self.extract_movie(input)
-      if len(movie) == 0: return 'Sorry, I don\'t understand. Tell me about a movie that you have seen.'
+      if len(movie) == 0: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
       if len(movie) > 1: return'Please tell me about one movie at a time. Go ahead.'
       
       for i, m in enumerate(movie):
@@ -224,7 +235,8 @@ class Chatbot:
             if closest_movie and len(closest_movie) > 1:
               return "Which \"{}\" movie did you mean?".format(m)
             elif closest_movie and len(closest_movie) == 1:
-              return "Did you mean \"{}\"?".format(closest_movie[0])
+              movie[i] = closest_movie[0]
+              #return "Did you mean \"{}\"?".format(closest_movie[0])
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
       movie = movie[0] # for starter, only one movie.
 

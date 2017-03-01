@@ -132,23 +132,27 @@ class Chatbot:
       return re.findall('"([^"]*)"', user_input)
 
     def extract_sentiment(self, user_input):
-      num_pos = 0
-      num_neg = 0
-
+      score = 0
       intensity = self.gauge_intensity(user_input)
 
-      for w in user_input.split(" "):
+      movie_name = "\""+self.extract_movie(user_input)[0]+"\""
+      user_input = user_input.replace(movie_name, "")
+      for ind, w in enumerate(user_input.split(" ")):
         word = self.porter_stemmer.stem(w)
         if word in self.sentiment.keys():
+          prev_word = user_input.split(" ")[ind - 1]
           sentiment = self.sentiment[word]
           if sentiment == "pos":
-            num_pos += 1
+            val = 1
           elif sentiment == "neg":
-            num_neg += 1
+            val = -1
+          if prev_word == "not" or prev_word == "never" or prev_word.endswith("'nt"):
+            val = val*-1
+          score += val
 
-      if num_pos > num_neg:
+      if score > 0:
         return (4 + intensity)
-      elif num_neg > num_pos:
+      elif score < 0:
         return (2 - intensity)
       else:
         return 3

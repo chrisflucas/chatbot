@@ -10,7 +10,12 @@ import csv
 import math
 import re
 import numpy as np
+<<<<<<< HEAD
 import unicodedata
+=======
+import string
+
+>>>>>>> 9f23d04373beeb6218819f93816360b0a8a80133
 from movielens import ratings
 from random import randint
 from PorterStemmer import PorterStemmer
@@ -232,6 +237,8 @@ class Chatbot:
       if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
       if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
       if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
+      if sentiment > 4: response = "Wow, you loved \"{}\". Thank you!".format(movie)
+      if sentiment < 2: response = "Wow, you hated \"{}\". Thank you!".format(movie)
       
       self.add_to_vector(movie, sentiment)
       #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
@@ -252,24 +259,51 @@ class Chatbot:
       return re.findall('"([^"]*)"', user_input)
 
     def extract_sentiment(self, user_input):
-      num_pos = 0
-      num_neg = 0
+      score = 0
 
-      for w in user_input.split(" "):
+      #take out movie name
+      movie_name = "\""+self.extract_movie(user_input)[0]+"\""
+      user_input = user_input.replace(movie_name, "")
+
+      #determine fine sentiment
+      intensity = self.gauge_intensity(user_input)
+
+      user_input = user_input.translate(None, string.punctuation)
+
+      #calculate sentiment
+      for ind, w in enumerate(user_input.split(" ")):
         word = self.porter_stemmer.stem(w)
         if word in self.sentiment.keys():
+          prev_word = user_input.split(" ")[ind - 1]
           sentiment = self.sentiment[word]
+          if word == "fun" or word == "cool":
+            sentiment = "pos"
           if sentiment == "pos":
-            num_pos += 1
+            val = 1
           elif sentiment == "neg":
-            num_neg += 1
+            val = -1
+          if prev_word == "not" or prev_word == "never" or prev_word.endswith("'nt"):
+            val = val*-1
+          score += val
 
-      if num_pos > num_neg:
-        return 5
-      elif num_neg > num_pos:
-        return 1
+      if score > 0:
+        return (4 + intensity)
+      elif score < 0:
+        return (2 - intensity)
       else:
         return 3
+
+    def gauge_intensity(self, user_input):
+      if "!" in user_input:
+        return 1
+      words = user_input.split(" ")
+      intensifiers = ["love", "hate", "ador", "favorit", "worst", "realli", "veri"]
+      for w in words:
+        word = self.porter_stemmer.stem(w)
+        if word in intensifiers:
+          return 1
+
+      return 0
 
 
     def add_to_vector(self, movie, sentiment):

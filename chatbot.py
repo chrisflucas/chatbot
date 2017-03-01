@@ -209,9 +209,6 @@ class Chatbot:
       return fv
 
     def generate_matrix(self, user_vector):
-      ##### DELETE THIS
-      user_vector = [0]*len(self.titles)
-
       means_vector = [0]*len(self.titles)
       for index, movie in enumerate(self.ratings):
         total = np.sum(movie) + user_vector[index]

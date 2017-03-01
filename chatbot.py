@@ -249,8 +249,15 @@ class Chatbot:
           return "Shoot okay, let\'s try again. Tell me what you were saying. Maybe check your spelling too?"
         else:
           return "I did not get that. Were you talking about \"{}?".format(self.spelling_clairifcation)
-      #elif self.series_clarification != '':
-      #  return "okay"
+      elif self.series_clarification != '' and self.is_turbo:
+        my_input = input
+        if "\"" in my_input: my_input = my_input.replace("\"", '') 
+        if my_input in self.series_clarification:
+          movie = [input]
+          input = self.original_input
+          self.series_clarification=''
+        else:
+          return "I did not get that. Which one were you talking about?  I know of {}".format(self.series_clarification)
       else:
         movie = self.extract_movie(input)
         self.original_input=input
@@ -285,6 +292,7 @@ class Chatbot:
           else: # Case where it is in series.
             if closest_movie and len(closest_movie) > 1:
               closest_movie_string = self.format_series_string(closest_movie)
+              self.series_clarification = closest_movie_string
               return "Which \"{}\" movie did you mean? I can talk about {}.".format(m, closest_movie_string)
             elif closest_movie and len(closest_movie) == 1:
               movie[i] = closest_movie[0]

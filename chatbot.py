@@ -379,7 +379,7 @@ class Chatbot:
       if not self.is_turbo or (self.is_turbo and len(movie)==1):
         movie = movie[0]
         rating = self.extract_sentiment(input)
-        if rating == 3: return self.get_sentiment_response(movie, rating)
+        if rating == 0: return self.get_sentiment_response(movie, rating)
         response = self.get_sentiment_response(movie, rating) + " Thank you."
         self.add_to_vector(movie, rating)
       else:
@@ -390,12 +390,12 @@ class Chatbot:
         response += " Thank you."
 
 
-      # self.user_vector = [("Harry Potter and the Chamber of Secrets", 5),
-      #               ("Harry Potter and the Prisoner of Azkaban", 5),
-      #               ("Harry Potter and the Goblet of Fire", 5),
-      #               ("Harry Potter and the Order of the Phoenix", 5),
-      #               ("Harry Potter and the Deathly Hallows: Part 1", 5),
-      #               ("Friends with Benefits", 1)]
+      self.user_vector = [("Harry Potter and the Chamber of Secrets", -1),
+                    ("Harry Potter and the Prisoner of Azkaban", -1),
+                    ("Harry Potter and the Goblet of Fire", -1),
+                    ("Harry Potter and the Order of the Phoenix", -1),
+                    ("Harry Potter and the Deathly Hallows: Part 1", -1),
+                    ("Mean Girls", 2)]
 
       # self.user_vector = [("Bridesmaids", 5),
       #                     ("No Strings Attached", 5),
@@ -445,6 +445,7 @@ class Chatbot:
 
     #assumes movies are spelled correctly
     def get_sentiment_response(self, movie, rating):
+      index = rating + 3 
       sentiment_responses = [0,
                             "Wow, you hated \"{}\". ".format(movie),
                             "You did not like \"{}\". ".format(movie),
@@ -452,7 +453,7 @@ class Chatbot:
                             "You liked \"{}\". ".format(movie),
                             "Wow, you loved \"{}\". ".format(movie)
                             ]
-      return sentiment_responses[rating]
+      return sentiment_responses[index]
 
 
     def multiple_move_sentiment(self, movies_vect, user_input):
@@ -466,7 +467,7 @@ class Chatbot:
 
       responses = [(0,0)]*len(movies_vect)
       for ind, score in enumerate(scores):
-        if score == 3:
+        if score == 0:
           if ind != 0:
             scores[ind] = scores[ind-1]
         responses[ind] = (movies_vect[ind], scores[ind])
@@ -510,11 +511,11 @@ class Chatbot:
           score += val
 
       if score > 0:
-        return (4 + intensity)
+        return (1 + intensity)
       elif score < 0:
-        return (2 - intensity)
+        return (-1 - intensity)
       else:
-        return 3
+        return 0
 
     def remove_year(self, title):
       m = re.search('(\([1-3][0-9]{3}\))', title)

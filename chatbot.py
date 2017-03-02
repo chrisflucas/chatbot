@@ -71,7 +71,7 @@ class Chatbot:
       #############################################################################
       # TODO: Write a short greeting message                                      #
       #############################################################################
-      self.multiple_move_sentiment(1,1)
+
       greeting_message = 'What do you want?'
 
       #############################################################################
@@ -240,6 +240,7 @@ class Chatbot:
       # calling other functions. Although modular code is not graded, it is       #
       # highly recommended                                                        #
       #############################################################################
+      response = ""
       if self.spelling_clairifcation != '' and self.is_turbo:
         if input.lower() in self.affirmations:
           movie = [self.spelling_clairifcation]
@@ -304,17 +305,22 @@ class Chatbot:
 
           # movie is in list of movies, but need to check if count > 1
           # give options for years.
-      if not self.is_turbo: movie = movie[0] # for starter, only one movie.
-      if self.is_turbo and len(movie)==1: movie = movie[0]
+      # for starter, only one movie.
+      if not self.is_turbo or (self.is_turbo and len(movie)==1):
+        movie = movie[0]
+        rating = self.extract_sentiment(input)
+        if rating == 3: return self.get_sentiment_response(movie, rating)
+        response = self.get_sentiment_response(movie, rating) + " Thank you."
+        self.add_to_vector(movie, rating)
+      else:
+        movie_sentiments = self.multiple_move_sentiment(movie, input)
+        for m in movie_sentiments:
+          response += self.get_sentiment_response(m[0], m[1])
+          self.add_to_vector(m[0], m[1])
+        response += " Thank you."
 
-      sentiment = self.extract_sentiment(input)
-      if sentiment == 3: return "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie)
-      if sentiment > 3: response = "You liked \"{}\". Thank you!".format(movie)
-      if sentiment < 3: response = "You did not like \"{}\". Thank you!".format(movie)
-      if sentiment > 4: response = "Wow, you loved \"{}\". Thank you!".format(movie)
-      if sentiment < 2: response = "Wow, you hated \"{}\". Thank you!".format(movie)
       
-      self.add_to_vector(movie, sentiment)
+      
       #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
@@ -330,20 +336,41 @@ class Chatbot:
     #   add_to_vector(movie, sentiment)
 
     #assumes movies are spelled correctly
-    def multiple_move_sentiment(self, movies_vect, user_input):
-      user_input = "I liked \"Titanic\" and \"Mean Girls\""
-      movies_vect = ["The Titanic", "Mean Girls"]
+    def get_sentiment_response(self, movie, rating):
+      sentiment_responses = [0,
+                            "Wow, you hated \"{}\". ".format(movie),
+                            "You did not like \"{}\". ".format(movie),
+                            "I\'m sorry, I\'m not quite sure if you liked {}. Tell me more about \"{}\"".format(movie, movie),
+                            "You liked \"{}\". ".format(movie),
+                            "Wow, you loved \"{}\". ".format(movie)
+                            ]
+      return sentiment_responses[rating]
 
-      user_input = user_input.split("and").split("but").split("or")
-      print user_input
+
+    def multiple_move_sentiment(self, movies_vect, user_input):
+      user_input = re.sub("\"[^\".]*\"", "<MOVIE>", user_input)
+      user_input = user_input.replace(" and ",'*').replace(" but ", "*").replace(" or ", "*")
+      user_input = user_input.split('*')
+      
+      scores = [0]*len(user_input)
+      for ind, clause in enumerate(user_input):
+        scores[ind] = self.calculate_sentiment(clause, 0)
+
+      responses = [(0,0)]*len(movies_vect)
+      for ind, score in enumerate(scores):
+        if score == 3:
+          if ind != 0:
+            scores[ind] = scores[ind-1]
+        responses[ind] = (movies_vect[ind], scores[ind])
+
+      return responses
+
 
 
     def extract_movie(self, user_input):
       return re.findall('"([^"]*)"', user_input)
 
     def extract_sentiment(self, user_input):
-      score = 0
-
       #take out movie name
       if self.spelling_clairifcation == '':
         movie_name = "\""+self.extract_movie(user_input)[0]+"\""
@@ -352,10 +379,14 @@ class Chatbot:
         movie_name = self.spelling_clairifcation
         user_input = self.original_input
 
-      #determine fine sentiment
       intensity = self.gauge_intensity(user_input)
+      score = self.calculate_sentiment(user_input, intensity)
+      return score
 
-      #calculate sentiment
+
+    def calculate_sentiment(self, user_input, intensity):
+      score = 0
+      user_input = user_input.replace(".", "")
       word_array = user_input.split(" ")
       if "really" in word_array:
         word_array.remove("really")
@@ -378,6 +409,8 @@ class Chatbot:
         return (2 - intensity)
       else:
         return 3
+
+
 
     def gauge_intensity(self, user_input):
       if "!" in user_input:

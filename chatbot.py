@@ -378,7 +378,7 @@ class Chatbot:
         response += " Thank you."
 
 
-      #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
+      self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -535,9 +535,12 @@ class Chatbot:
       denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
       if denomimnator == 0:
         return 0
+
+      print "start sum"
       for sim_index, sim_val in enumerate(similarity_vector):
         if sim_val > 0 and sim_index != movie_index:
           numerator += sim_val * self.formatted_vec[sim_index]
+      print "end sum"
       
       predicted_rating = numerator/denomimnator
       return predicted_rating

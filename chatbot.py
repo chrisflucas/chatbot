@@ -398,6 +398,7 @@ class Chatbot:
       #                     ("How to Lose a Guy in 10 Days", 5),
       #                     ("Born Yesterday", 5)
       #                     ]
+
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -509,7 +510,10 @@ class Chatbot:
       else:
         return 3
 
-
+    def remove_year(self, title):
+      m = re.search('(\([1-3][0-9]{3}\))', title)
+      yr = m.group(1)
+      return title.replace(yr, '').strip(), yr.replace("(", "").replace(")","")
 
     def gauge_intensity(self, user_input):
       if "!" in user_input:
@@ -622,7 +626,17 @@ class Chatbot:
       num_movies = len(self.movie_titles)
       fv = [0] * num_movies
       for movie, rating in self.user_vector:
-        curr_pos = self.movie_titles.index(movie)
+        if self.contains_year(movie):
+          title_without_year, year = self.remove_year(movie)
+          title_without_year = self.unformat_movie(title_without_year)
+          movie = title_without_year + " ("+year+")"
+          for i in range(len(self.titles)):
+            t,g = self.titles[i]
+            if t == movie:
+              curr_pos = i
+              break
+        else:
+          curr_pos = self.movie_titles.index(movie)
         fv[curr_pos] = rating
       return np.array(fv)
 

@@ -53,6 +53,10 @@ class Chatbot:
       self.can_array=["I'm sorry I don't know how to{}.", "I can't{}.", "I won't{}", "How do you{}?"]
       self.where_array=["I'm sorry I don't know where{} is...", "I'll check the map for{}", "I'm not familiar with{}", "I could not tell you where{} is."]
       self.what_array=["I don't know what{} is...", "Who knows what{} is?", "I'll look up{} and see what I find.", "I'll check{} out and get back to you."]
+      self.unknown_movie=['I\'m sorry, I don\'t think I have \"{}\"" in my database! Tell me about another movie that you have seen.', \
+        'I haven\'t heard of \"{}\"... I wonder if it\'s good.', 
+        'Is \"{}\"" the one where the girl meets the boy and...hm maybe not, I can\'t quite remember.'
+      ]
       self.spelling_clairifcation = ''
       self.original_input = ''
       self.series_clarification = ''
@@ -162,7 +166,6 @@ class Chatbot:
         self.replaceEdits(word)
 
     def find_closest_movie(self, movie):
-      if not self.is_turbo: return None, True
       potentials = []
       misspelled = True
 
@@ -315,7 +318,7 @@ class Chatbot:
         self.original_input=input
 
       if len(movie) == 0: # Arbitrary Input Cases
-        if "\"" in input: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
+        if "\"" in input: return self.unknown_movie[random.randrange(0,len(self.unknown_movie))].format(self.extract_movie(input))
         if "What is" in input:
           pronoun = input.split("What is")[1]
           if "?" in pronoun: pronoun = pronoun[:len(pronoun)-1]
@@ -334,6 +337,8 @@ class Chatbot:
       for i, m in enumerate(movie):
         movie[i] = self.format_movie(m)
         if m not in self.movie_titles and not self.contains_year(m):
+          print "hi", self.is_turbo
+          if not self.is_turbo: return self.unknown_movie[random.randrange(0,len(self.unknown_movie))].format(m)
           closest_movie, misspelled = self.find_closest_movie(m)
           if misspelled:
             if closest_movie: 

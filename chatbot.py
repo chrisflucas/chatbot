@@ -337,7 +337,6 @@ class Chatbot:
       for i, m in enumerate(movie):
         movie[i] = self.format_movie(m)
         if m not in self.movie_titles and not self.contains_year(m):
-          print "hi", self.is_turbo
           if not self.is_turbo: return self.unknown_movie[random.randrange(0,len(self.unknown_movie))].format(m)
           closest_movie, misspelled = self.find_closest_movie(m)
           if misspelled:
@@ -383,11 +382,11 @@ class Chatbot:
         response += " Thank you."
 
 
-      self.user_vector = [("Zerophilia", 5),
-                    ("Harry Potter and the Chamber of Secrets", 5),
+      self.user_vector = [("License to Wed", 5),
                     ("No Strings Attached", 5),
                     ("Just Go with It", 5),
-                    ("Friends with Benefits", 5)]
+                    ("Friends with Benefits", 5),
+                    ("Mean Girls", 5)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -531,16 +530,20 @@ class Chatbot:
       return sim
 
 
+    #movie_index is a movie you have not rated
     def find_rating(self, movie_index, other_movies):
       similarity_vector = np.zeros(len(other_movies))
       movie = self.mean_centered_matrix[movie_index]
       
 
-      #other movies is vect of indices
+      #other movies is vect of indices of movies we have rated
       for i, other_movie in enumerate(other_movies):
+        if i == movie_index: continue
         other_movie_vect = self.mean_centered_matrix[other_movie]
-        similarity_vector[i] = self.distance(movie, other_movie_vect)
-      numerator = 0
+        sim = self.distance(movie, other_movie_vect)
+        if sim > 0:
+          similarity_vector[i] = sim
+
       denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
       if denomimnator == 0:
         return 0
@@ -559,7 +562,6 @@ class Chatbot:
       self.mean_centered_matrix = self.generate_matrix(self.formatted_vec)
       predictions = []
       other_movies = np.nonzero(self.formatted_vec)[0]
-      print other_movies
       for index, val in enumerate(self.formatted_vec):
         if val > 0:
           predictions.append((-1, index))

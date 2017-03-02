@@ -513,34 +513,29 @@ class Chatbot:
       """Calculates a given distance function between vectors u and v"""
       # TODO: Implement the distance function between vectors u and v]
       # Note: you can also think of this as computing a similarity measure
-      num = np.dot(u,v)
-      normalize_u = math.sqrt(np.sum(i*i for i in u)) 
-      normalize_v = math.sqrt(np.sum(i*i for i in v))
+      normalize_u = np.linalg.norm(u)
+      normalize_v = np.linalg.norm(v)
       if normalize_u == 0 or normalize_v == 0: return 0
+      num = np.dot(u,v)
       sim = num/(normalize_v*normalize_u)
 
       return sim
 
 
-    def find_rating(self, movie_index):
-      similarity_vector = [0] * len(self.titles)
+    def find_rating(self, movie_index, other_movies):
+      similarity_vector = np.zeros(len(other_movies))
       movie = self.ratings[movie_index]
-      other_movies = np.nonzero(self.formatted_vec)[0]
+      
 
       #other movies is vect of indices
-      for other_movie in other_movies:
+      for i, other_movie in enumerate(other_movies):
         other_movie_vect = self.mean_centered_matrix[other_movie]
-        similarity_vector[other_movie] = self.distance(movie, other_movie_vect)
+        similarity_vector[i] = self.distance(movie, other_movie_vect)
       numerator = 0
       denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
       if denomimnator == 0:
         return 0
-
-      print "start sum"
-      for sim_index, sim_val in enumerate(similarity_vector):
-        if sim_val > 0 and sim_index != movie_index:
-          numerator += sim_val * self.formatted_vec[sim_index]
-      print "end sum"
+      numerator = np.dot(similarity_vector, self.formatted_vec[list(other_movies.astype(np.int32))])
       
       predicted_rating = numerator/denomimnator
       return predicted_rating
@@ -553,13 +548,14 @@ class Chatbot:
       # and outputs a list of movies recommended by the chatbot
       self.formatted_vec = self.format_vec()
       self.mean_centered_matrix = self.generate_matrix(self.formatted_vec)
-      print "start predictions"
       predictions = []
+      other_movies = np.nonzero(self.formatted_vec)[0]
+      print other_movies
       for index, val in enumerate(self.formatted_vec):
         if val > 0:
           predictions.append((-1, index))
         else:
-          predictions.append((self.find_rating(index), index))
+          predictions.append((self.find_rating(index, other_movies), index))
       predictions = sorted(predictions, reverse = True)
       print self.movie_titles[predictions[0][1]]
       print self.movie_titles[predictions[1][1]]
@@ -580,28 +576,10 @@ class Chatbot:
       for movie, rating in self.user_vector:
         curr_pos = self.movie_titles.index(movie)
         fv[curr_pos] = rating
-      return fv
+      return np.array(fv)
 
     def generate_matrix(self, user_vector):
-      print "start mean center"
-      means_vector = [0]*len(self.titles)
-      for index, movie in enumerate(self.ratings):
-        total = np.sum(movie) + user_vector[index]
-        length = np.count_nonzero(movie)
-        if user_vector[index] != 0:
-          length += 1
-        if length > 0:
-          means_vector[index] = total/length
-
-      mean_centered_matrix = deepcopy(self.ratings)
-      for movie_index, movie in enumerate(self.ratings):
-        for rating_index, movie_rating in enumerate(movie):
-          if self.ratings[movie_index][rating_index] != 0:
-            centered_rate = self.ratings[movie_index][rating_index] - means_vector[movie_index]
-            mean_centered_matrix[movie_index][rating_index] = centered_rate
-
-      print "end mean center"
-      return mean_centered_matrix
+      return self.ratings - np.mean(self.ratings, axis=1, keepdims=True)
 
 
     #############################################################################

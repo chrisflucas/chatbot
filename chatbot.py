@@ -668,14 +668,25 @@ class Chatbot:
     #############################################################################
     def intro(self):
       return """
-      Your task is to implement the chatbot as detailed in the PA6 instructions.
-      Remember: in the starter mode, movie names will come in quotation marks and
-      expressions of sentiment will be simple!
-      Write here the description for your own chatbot!
+      Welcome to our chatbot L’Belle! She is quite the star movie recommender. Some things you should know about L’Belle:
 
-      My group just spent a few hours formatting our code so that it responds to movies the way the rubric indicated
-      (without the year i.e. "Titanic).
-      Since this clarification is coming in late, is there any way we can be graded by the original rubric?
+      In starter mode:
+      - L’Belle DOES NOT handle movies with years in their titles, because she was designed with an early version of the rubric that did not include years.
+      - L’Belle is a pretty fluent speaker, and will respond with a variety of sentences depending on how you interact with her.
+      - L’Belle can understand sentiment
+      - When L’Belle doesn’t know the movie you’re talking about, she’ll let you know
+
+      In Creative mode:
+      — L’Belle always needs quotations around movies
+      — L’Belle uses non-binarized filtering
+      — If you express strong sentiment about a move (“love”,”hate”, “really like”) L’Belle will rank that movie with a stronger intensity and respond with something like “Wow you really hated Titanic”
+      — If you refer to a movie L’Belle does not recognize, she will perform a spell check of up to two edits. If you are within two edits of a movie she does know, she’ll ask if that’s what you meant.
+      — If you enter a movie with versions from multiple years, L’Belle will ask you which one you meant, and use the movie from the year you indicated.
+      — Similarly, if you indicate that you like a movie that could refer to many parts of a series (i.e. Harry Potter), L’Belle will ask which one you meant. You can respond with the whole name (i.e. Harry Potter and the Prisoner of Azkaban) or just the relevant substring (i.e. Prisoner of Azkaban, “Prisoner of Azkaban”)
+      — L’Belle can handle inputs of up to two movies. For example, if you say “I like “Mean Girls” and “Bridesmaids”, she’ll understand that you like both of those movies. However, if inputting two movies, L’Belle cannot disambiguate the series or year, nor can she identify fine sentiment. Those features only work on one movie at a time.
+      — If you stop talking about movies, L’Belle can tell if you are angry or happy based on what you say to her.
+      — L’Belle has a variety of “catch-all” phrases for responding to arbitrary input. She can respond appropriately if you ask her questions beginning with “Can”, “Where”, and “What”, and has an assortment of responses to other arbitrary inputs
+      — L’Belle can handle alternate titles of movies
       """
 
 

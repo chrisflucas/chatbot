@@ -30,8 +30,14 @@ class Chatbot:
         for movie_array in self.titles:
           title = self.format_movie(movie_array[0])
           m = re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, The)", title)
-          if m:
+          if m: 
             title = "The " + m.group(1)
+          elif re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, An)", title):
+            m = re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, An)", title)
+            if m: title = "An " + m.group(1)
+          elif re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, A)", title):
+            m = re.search("([\w :;,.\'\"&\-!/?+*\[\]\(\)\{\}]+)(, A)", title)
+            if m: title = "A "+m.group(1)
           tits.append(title.strip())
           # m = re.search('\([1-3][0-9]{3}\)', title)
           # if not m: m = re.search('\([1-3][0-9]{3} ?-\)', title) # Edge case regex for (2007-)

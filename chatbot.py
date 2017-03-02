@@ -537,8 +537,7 @@ class Chatbot:
       
 
       #other movies is vect of indices of movies we have rated
-      for i, other_movie in enumerate(other_movies):
-        if i == movie_index: continue
+      for other_movie in enumerate(other_movies):
         other_movie_vect = self.mean_centered_matrix[other_movie]
         sim = self.distance(movie, other_movie_vect)
         if sim > 0:

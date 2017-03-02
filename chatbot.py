@@ -366,7 +366,7 @@ class Chatbot:
               movie[i] = closest_movie[0]
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
         else:
-          if self.movie_titles.count(m) > 1:# Case where same movie title, different years.
+          if self.movie_titles.count(m) > 1 and self.is_turbo:# Case where same movie title, different years.
             years_array = self.extract_years_of_same_movie(m)
             self.year_clarification = self.format_year_string(years_array)
             return "Which \"{}\" movie did you mean? The one made in {}?".format(m, self.year_clarification)
@@ -572,7 +572,6 @@ class Chatbot:
       if normalize_u == 0 or normalize_v == 0: return 0
       num = np.dot(u,v)
       sim = num/(normalize_v*normalize_u)
-
       return sim
 
 
@@ -588,12 +587,12 @@ class Chatbot:
         if sim > 0:
           similarity_vector[i] = sim
       numerator = 0
-      denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
-      if denomimnator == 0:
-        return 0
+      # denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
+      # if denomimnator == 0:
+      #   return 0
       numerator = np.dot(similarity_vector, self.formatted_vec[list(other_movies.astype(np.int32))])
       
-      predicted_rating = numerator/denomimnator
+      predicted_rating = numerator#/denomimnator
       return predicted_rating
 
 

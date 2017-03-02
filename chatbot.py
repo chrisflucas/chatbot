@@ -331,6 +331,8 @@ class Chatbot:
           location = input.split("Where is")[1]
           if "?" in location: location = location[:len(location)-1]
           return self.where_array[random.randrange(0, len(self.where_array))].format(location)
+        if self.detect_emotion(input) != "":
+          return self.detect_emotion(input)
         return self.catch_all[random.randrange(0, len(self.catch_all))]
       if len(movie) > 1 and not self.is_turbo: return'Please tell me about one movie at a time. Go ahead.'
       
@@ -382,12 +384,20 @@ class Chatbot:
         response += " Thank you."
 
 
-      self.user_vector = [("Harry Potter and the Chamber of Secrets", 5),
-                    ("Harry Potter and the Prisoner of Azkaban", 5),
-                    ("Harry Potter and the Goblet of Fire", 5),
-                    ("Harry Potter and the Order of the Phoenix", 5),
-                    ("Harry Potter and the Deathly Hallows: Part 1", 5),
-                    ("Friends with Benefits", 1)]
+      # self.user_vector = [("Harry Potter and the Chamber of Secrets", 5),
+      #               ("Harry Potter and the Prisoner of Azkaban", 5),
+      #               ("Harry Potter and the Goblet of Fire", 5),
+      #               ("Harry Potter and the Order of the Phoenix", 5),
+      #               ("Harry Potter and the Deathly Hallows: Part 1", 5),
+      #               ("Friends with Benefits", 1)]
+
+      # self.user_vector = [("Bridesmaids", 5),
+      #                     ("No Strings Attached", 5),
+      #                     ("Friends with Benefits", 5),
+      #                     ("Mean Girls", 5),
+      #                     ("How to Lose a Guy in 10 Days", 5),
+      #                     ("Born Yesterday", 5)
+      #                     ]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -400,6 +410,31 @@ class Chatbot:
     #   movie = extract_movie(user_input)
     #   sentiment = extract_sentiment(user_input)
     #   add_to_vector(movie, sentiment)
+
+
+    def detect_emotion(self, user_input):
+      angry_words = ["angri", "mad", "piss", "hate", "livid", "frustrat", "unhappi"]
+      happy_words = ["happi", "excit", "glad", "thrill"]
+      user_input = user_input.replace(".", "").replace("!", "")
+      word_array = user_input.split(" ")
+
+      #detect anger
+      for ind, w in enumerate(word_array):
+        word = self.porter_stemmer.stem(w)
+        prev_word = user_input.split(" ")[ind - 1]
+        if word in angry_words:
+          if prev_word == "not" or prev_word == "never" or prev_word.endswith("n't"):
+            return "I'm glad you're not angry."
+          else:
+            return "I see you're angry...I hope not with me!"
+        if word in happy_words:
+          if prev_word == "not" or prev_word == "never" or prev_word.endswith("n't"):
+            return "I'm sorry you're not happy. Tell me about some movies you watch when you're sad"
+          else:
+            return "You sound like you're in a good mood!"
+      return ""
+
+
 
     #assumes movies are spelled correctly
     def get_sentiment_response(self, movie, rating):
@@ -450,7 +485,7 @@ class Chatbot:
 
     def calculate_sentiment(self, user_input, intensity):
       score = 0
-      user_input = user_input.replace(".", "")
+      user_input = user_input.replace(".", "").replace("!", "")
       word_array = user_input.split(" ")
       if "really" in word_array:
         word_array.remove("really")

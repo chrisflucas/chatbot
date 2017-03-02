@@ -382,11 +382,12 @@ class Chatbot:
         response += " Thank you."
 
 
-      self.user_vector = [("License to Wed", 5),
-                    ("No Strings Attached", 5),
-                    ("Just Go with It", 5),
-                    ("Friends with Benefits", 5),
-                    ("Mean Girls", 5)]
+      self.user_vector = [("Harry Potter and the Chamber of Secrets", 5),
+                    ("Harry Potter and the Prisoner of Azkaban", 5),
+                    ("Harry Potter and the Goblet of Fire", 5),
+                    ("Harry Potter and the Order of the Phoenix", 5),
+                    ("Harry Potter and the Deathly Hallows: Part 1", 5),
+                    ("Friends with Benefits", 1)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -530,19 +531,18 @@ class Chatbot:
       return sim
 
 
-    #movie_index is a movie you have not rated
     def find_rating(self, movie_index, other_movies):
       similarity_vector = np.zeros(len(other_movies))
       movie = self.mean_centered_matrix[movie_index]
       
 
-      #other movies is vect of indices of movies we have rated
-      for other_movie in enumerate(other_movies):
+      #other movies is vect of indices
+      for i, other_movie in enumerate(other_movies):
         other_movie_vect = self.mean_centered_matrix[other_movie]
         sim = self.distance(movie, other_movie_vect)
         if sim > 0:
           similarity_vector[i] = sim
-
+      numerator = 0
       denomimnator = np.sum(similarity_vector) # -1 for its similarity with itself.
       if denomimnator == 0:
         return 0

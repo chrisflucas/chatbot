@@ -378,7 +378,11 @@ class Chatbot:
         response += " Thank you."
 
 
-      self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
+      self.user_vector = [("Zerophilia", 5),
+                    ("Harry Potter and the Chamber of Secrets", 5),
+                    ("No Strings Attached", 5),
+                    ("Just Go with It", 5),
+                    ("Friends with Benefits", 5)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
         recommendation = self.recommend()
@@ -524,7 +528,7 @@ class Chatbot:
 
     def find_rating(self, movie_index, other_movies):
       similarity_vector = np.zeros(len(other_movies))
-      movie = self.ratings[movie_index]
+      movie = self.mean_centered_matrix[movie_index]
       
 
       #other movies is vect of indices
@@ -562,6 +566,9 @@ class Chatbot:
       print self.movie_titles[predictions[2][1]]
       print self.movie_titles[predictions[3][1]]
       print self.movie_titles[predictions[4][1]]
+      print self.movie_titles[predictions[5][1]]
+      print self.movie_titles[predictions[6][1]]
+      print self.movie_titles[predictions[7][1]]
       return self.movie_titles[predictions[0][1]]
       ## Will need to write more functions for computing sims then returning best recommendation. ##
 
@@ -579,7 +586,8 @@ class Chatbot:
       return np.array(fv)
 
     def generate_matrix(self, user_vector):
-      return self.ratings - np.mean(self.ratings, axis=1, keepdims=True)
+      matrix = np.c_[self.ratings, user_vector]
+      return matrix - np.mean(self.ratings, axis=1, keepdims=True)
 
 
     #############################################################################

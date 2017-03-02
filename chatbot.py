@@ -58,7 +58,7 @@ class Chatbot:
       self.series_clarification = ''
       self.year_clarification = ''
       self.affirmations = ['yeah','yes','y','yea','ya','yes i did', 'i did','mhmm','yep', 'correct']
-      self.negations = ['no','nope','no i didn\'t', 'no i didnt', 'nah', 'no i did not', 'wrong']
+      self.negations = ['no','nope','no i didn\'t', 'no i didnt', 'nah', 'no i did not', 'wrong', 'n']
 
       #print self.movie_titles
 
@@ -213,6 +213,17 @@ class Chatbot:
       if match.group(2): return "The " + match.group(1)
       return match.group(1)
 
+    def unformat_movie(self, movie):
+      split_movie = movie.split()
+      if split_movie[0] == "The":
+        res = ''
+        for i in range(1, len(split_movie)):
+          res += split_movie[i] + " "
+        res = res.strip()
+        return res + ", The"
+      else:
+        return movie
+
     def format_series_string(self, series_array):
       res=''
       length = len(series_array)-1
@@ -223,7 +234,37 @@ class Chatbot:
     def extract_series_from_list(self, input):
       for elem in self.series_clarification.split("\""):
         if input in elem: return elem
-        
+
+    def all_the_same_movie(self, arr):
+      movie = arr[0]
+      for i in arr:
+        if i != movie: return False
+      return True
+
+    def extract_years_of_same_movie(self, title):
+      years=[]
+      for t, g in self.titles:
+        if self.unformat_movie(title) in t:
+          m = re.search('\(([1-3][0-9]{3})\)', t)
+          if m: years.append(m.group(1))
+      return years
+
+    def format_year_string(self, years):
+      ints = []
+      for s in years:
+        ints.append(int(s))
+      ints = sorted(ints)
+      res = ''
+      length = len(ints)-1
+      for i in range(length):
+        res+= str(ints[i])+ ", "
+      return res +'or '+str(ints[length])
+
+    def contains_year(self,tit):
+      m = re.search('\([1-3][0-9]{3}\)', tit)
+      if not m: return False
+      return True
+
     def process(self, input):
       """Takes the input string from the REPL and call delegated functions
       that
@@ -261,11 +302,19 @@ class Chatbot:
           self.series_clarification=''
         else:
           return "I did not get that. Which one were you talking about?  I know of {}".format(self.series_clarification)
+      elif self.year_clarification != '' and self.is_turbo:
+        if input in self.year_clarification:
+          orig_movie = self.extract_movie(self.original_input)[0]
+          movie = [orig_movie+" ("+input+")"]
+          input = self.original_input
+          self.year_clarification=''
+        else:
+          return "I only know of the movies made in the years {}. Which one of these did you mean?".format(self.year_clarification)
       else:
         movie = self.extract_movie(input)
         self.original_input=input
 
-      if len(movie) == 0: 
+      if len(movie) == 0: # Arbitrary Input Cases
         if "\"" in input: return 'I\'m sorry, I don\'t think I have that movie in my database! Tell me about another movie that you have seen.'
         if "What is" in input:
           pronoun = input.split("What is")[1]
@@ -284,7 +333,7 @@ class Chatbot:
       
       for i, m in enumerate(movie):
         movie[i] = self.format_movie(m)
-        if m not in self.movie_titles:
+        if m not in self.movie_titles and not self.contains_year(m):
           closest_movie, misspelled = self.find_closest_movie(m)
           if misspelled:
             if closest_movie: 
@@ -293,15 +342,24 @@ class Chatbot:
             else: return "Sorry I am not sure what to make of the movie \"{}\". Maybe check your spelling?".format(m)
           else: # Case where it is in series.
             if closest_movie and len(closest_movie) > 1:
-              closest_movie_string = self.format_series_string(closest_movie)
-              self.series_clarification = closest_movie_string
-              return "Which \"{}\" movie did you mean? I can talk about {}.".format(m, closest_movie_string)
+              if self.all_the_same_movie(closest_movie): # Case where same movie title, different years.
+                years_array = self.extract_years_of_same_movie(closest_movie[0])
+                self.year_clarification = self.format_year_string(years_array)
+                return "Which \"{}\" movie did you mean? The one made in {}?".format(m, self.year_clarification)
+              else:
+                closest_movie_string = self.format_series_string(closest_movie)
+                self.series_clarification = closest_movie_string
+                return "Which \"{}\" movie did you mean? I can talk about {}.".format(m, closest_movie_string)
             elif closest_movie and len(closest_movie) == 1:
               movie[i] = closest_movie[0]
-              #return "Did you mean \"{}\"?".format(closest_movie[0])
             else: return "Sorry I am not sure what to make of the movie \"{}\"".format(m)
-        #else:
-          #if self.movie_titles.count(m) > 1:
+        else:
+          if self.movie_titles.count(m) > 1:# Case where same movie title, different years.
+            years_array = self.extract_years_of_same_movie(m)
+            self.year_clarification = self.format_year_string(years_array)
+            return "Which \"{}\" movie did you mean? The one made in {}?".format(m, self.year_clarification)
+          elif self.contains_year(m): 
+            movie[i] = m
 
           # movie is in list of movies, but need to check if count > 1
           # give options for years.
@@ -319,8 +377,7 @@ class Chatbot:
           self.add_to_vector(m[0], m[1])
         response += " Thank you."
 
-      
-      
+
       #self.user_vector = [("Mean Girls", 5), ("Prom", 5), ("Bad Teacher", 5), ("Bridesmaids", 5), ("Horrible Bosses", 5),  ("She's All That", 5)]
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
@@ -364,8 +421,6 @@ class Chatbot:
         responses[ind] = (movies_vect[ind], scores[ind])
 
       return responses
-
-
 
     def extract_movie(self, user_input):
       return re.findall('"([^"]*)"', user_input)

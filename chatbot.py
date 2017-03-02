@@ -420,7 +420,7 @@ class Chatbot:
 
 
     def detect_emotion(self, user_input):
-      angry_words = ["angri", "mad", "piss", "hate", "livid", "frustrat", "unhappi"]
+      angry_words = ["angri", "mad", "piss", "hate", "livid", "frustrat", "unhappi", "upset"]
       happy_words = ["happi", "excit", "glad", "thrill"]
       user_input = user_input.replace(".", "").replace("!", "")
       word_array = user_input.split(" ")

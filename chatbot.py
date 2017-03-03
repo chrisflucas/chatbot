@@ -667,7 +667,8 @@ class Chatbot:
           intensity and respond with something like “Wow you really hated Titanic”
       — \033[1m Spell-checking movie titles: \033[0;0m
           If you refer to a movie L’Belle does not recognize, she will perform a spell check of up to two edits. If you are within
-          two edits of a movie she does know, she’ll ask if that’s what you meant.
+          two edits of a movie she does know, she’ll ask if that’s what you meant. Her response will depend you say yes (or a
+          variation of yes) or no (or a variation of no).
       — \033[1m Disambiguating movie titles for series and year ambiguities: \033[0;0m
           If you enter a movie with versions from multiple years, L’Belle will ask you which one you meant, and use the movie from
           the year you indicated.

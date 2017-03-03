@@ -82,7 +82,7 @@ class Chatbot:
       # TODO: Write a short greeting message                                      #
       #############################################################################
 
-      greeting_message = 'What do you want?'
+      greeting_message = "Hey! I'm L'Belle! Tell me about some movies you like."
 
       #############################################################################
       #                             END OF YOUR CODE                              #
@@ -96,7 +96,7 @@ class Chatbot:
       # TODO: Write a short farewell message                                      #
       #############################################################################
 
-      goodbye_message = 'Au revoir!'
+      goodbye_message = "Aw sad you're leaving. Au revoir!"
 
       #############################################################################
       #                             END OF YOUR CODE                              #
@@ -670,33 +670,45 @@ class Chatbot:
       return """
       Welcome to our chatbot L’Belle! She is quite the star movie recommender. Some things you should know about L’Belle:
 
-      In starter mode:
+      \033[92m In starter mode: \033[0m
+      - \033[1m Identifying movies in quotation marks, with correct capitalization: \033[0;0m
+          L'Belle identifies movies you talk about when written perfectly and put in quotes
       - L’Belle DOES NOT handle movies with years in their titles, because she was designed with an early version of the
         rubric that did not include years.
-      - L’Belle is a pretty fluent speaker, and will respond with a variety of sentences depending on how you interact with
-        her.
-      - L’Belle can understand sentiment
+      - \033[1m Speaking reasonably fluently, failing gracefully: \033[0;0m
+          L’Belle is a pretty fluent speaker, and will respond with a variety of sentences depending on how you interact with
+          her.
+      - \033[1m Extracting sentiment from simple inputs: \033[0;0m
+          L’Belle can understand sentiment very well
       - When L’Belle doesn’t know the movie you’re talking about, she’ll let you know
 
-      In Creative mode:
+      \033[92m In Creative mode: \033[0m
       — L’Belle always needs quotations around movies
-      — L’Belle uses non-binarized filtering
-      — If you express strong sentiment about a move (“love”,”hate”, “really like”) L’Belle will rank that movie with a stronger
-        intensity and respond with something like “Wow you really hated Titanic”
-      — If you refer to a movie L’Belle does not recognize, she will perform a spell check of up to two edits. If you are within
-        two edits of a movie she does know, she’ll ask if that’s what you meant.
-      — If you enter a movie with versions from multiple years, L’Belle will ask you which one you meant, and use the movie from
-        the year you indicated.
-      — Similarly, if you indicate that you like a movie that could refer to many parts of a series (i.e. Harry Potter), L’Belle
-        will ask which one you meant. You can respond with the whole name (i.e. Harry Potter and the Prisoner of Azkaban) or just
-        the relevant substring (i.e. Prisoner of Azkaban, “Prisoner of Azkaban”)
-      — L’Belle can handle inputs of up to two movies. For example, if you say “I like “Mean Girls” and “Bridesmaids”, she’ll
-        understand that you like both of those movies. However, if inputting two movies, L’Belle cannot disambiguate the series
-        or year, nor can she identify fine sentiment. Those features only work on one movie at a time.
-      — If you stop talking about movies, L’Belle can tell if you are angry or happy based on what you say to her.
-      — L’Belle has a variety of “catch-all” phrases for responding to arbitrary input. She can respond appropriately if you ask
-        her questions beginning with “Can”, “Where”, and “What”, and has an assortment of responses to other arbitrary inputs
-      — L’Belle can handle alternate titles of movies
+      — \033[1m Using non-binarized dataset: \033[0;0m
+          L’Belle uses non-binarized filtering
+      — \033[1m Fine-grained sentiment extraction:
+          If you express strong sentiment about a move (“love”,”hate”, “really like”) L’Belle will rank that movie with a stronger
+          intensity and respond with something like “Wow you really hated Titanic”
+      — \033[1m Spell-checking movie titles: \033[0;0m
+          If you refer to a movie L’Belle does not recognize, she will perform a spell check of up to two edits. If you are within
+          two edits of a movie she does know, she’ll ask if that’s what you meant.
+      — \033[1m Disambiguating movie titles for series and year ambiguities: \033[0;0m
+          If you enter a movie with versions from multiple years, L’Belle will ask you which one you meant, and use the movie from
+          the year you indicated.
+          Similarly, if you indicate that you like a movie that could refer to many parts of a series (i.e. Harry Potter), L’Belle
+          will ask which one you meant. You can respond with the whole name (i.e. Harry Potter and the Prisoner of Azkaban) or just
+          the relevant substring (i.e. Prisoner of Azkaban, “Prisoner of Azkaban”)
+      — \033[1m Extracting sentiment with multiple-movie input: \033[0;0m
+          L’Belle can handle inputs of up to two movies. For example, if you say “I like “Mean Girls” and “Bridesmaids”, she’ll
+          understand that you like both of those movies. However, if inputting two movies, L’Belle cannot disambiguate the series
+          or year, nor can she identify fine sentiment. Those features only work on one movie at a time.
+      — \033[1m Identifying and responding to emotions: \033[0;0m
+          If you stop talking about movies, L’Belle can tell if you are angry or happy based on what you say to her.
+      — \033[1m Responding to arbitrary input: \033[0;0m
+          L’Belle has a variety of “catch-all” phrases for responding to arbitrary input. She can respond appropriately if you ask
+          her questions beginning with “Can”, “Where”, and “What”, and has an assortment of responses to other arbitrary inputs
+      — \033[1m Alternate/foreign titles: \033[0;0m
+          L’Belle can handle alternate titles of movies
       """
 
 

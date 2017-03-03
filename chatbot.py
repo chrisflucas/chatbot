@@ -70,7 +70,6 @@ class Chatbot:
       self.affirmations = ['yeah','yes','y','yea','ya','yes i did', 'i did','mhmm','yep', 'correct']
       self.negations = ['no','nope','no i didn\'t', 'no i didnt', 'nah', 'no i did not', 'wrong', 'n']
 
-      #print self.movie_titles
 
     #############################################################################
     # 1. WARM UP REPL

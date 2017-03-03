@@ -380,30 +380,14 @@ class Chatbot:
         movie = movie[0]
         rating = self.extract_sentiment(input)
         if rating == 0: return self.get_sentiment_response(movie, rating)
-        response = self.get_sentiment_response(movie, rating) + " Thank you."
+        response = self.get_sentiment_response(movie, rating) + "Thank you."
         self.add_to_vector(movie, rating)
       else:
         movie_sentiments = self.multiple_move_sentiment(movie, input)
         for m in movie_sentiments:
           response += self.get_sentiment_response(m[0], m[1])
           self.add_to_vector(m[0], m[1])
-        response += " Thank you."
-
-
-      self.user_vector = [("Harry Potter and the Chamber of Secrets", -1),
-                    ("Harry Potter and the Prisoner of Azkaban", -1),
-                    ("Harry Potter and the Goblet of Fire", -1),
-                    ("Harry Potter and the Order of the Phoenix", -1),
-                    ("Harry Potter and the Deathly Hallows: Part 1", -1),
-                    ("Mean Girls", 2)]
-
-      # self.user_vector = [("Bridesmaids", 5),
-      #                     ("No Strings Attached", 5),
-      #                     ("Friends with Benefits", 5),
-      #                     ("Mean Girls", 5),
-      #                     ("How to Lose a Guy in 10 Days", 5),
-      #                     ("Born Yesterday", 5)
-      #                     ]
+        response += "Thank you."
 
       if len(self.user_vector) >= self.NUM_MOVIES_THRESHOLD: 
         response +=  " That\'s enough for me to make a recommendation."
@@ -526,7 +510,7 @@ class Chatbot:
       if "!" in user_input:
         return 1
       words = user_input.split(" ")
-      intensifiers = ["love", "hate", "ador", "favorit", "worst", "realli", "veri"]
+      intensifiers = ["love", "hate", "ador", "favorit", "worst", "realli", "veri", "incred", "amaz"]
       for w in words:
         word = self.porter_stemmer.stem(w)
         if word in intensifiers:
@@ -612,14 +596,6 @@ class Chatbot:
         else:
           predictions.append((self.find_rating(index, other_movies), index))
       predictions = sorted(predictions, reverse = True)
-      print self.movie_titles[predictions[0][1]]
-      print self.movie_titles[predictions[1][1]]
-      print self.movie_titles[predictions[2][1]]
-      print self.movie_titles[predictions[3][1]]
-      print self.movie_titles[predictions[4][1]]
-      print self.movie_titles[predictions[5][1]]
-      print self.movie_titles[predictions[6][1]]
-      print self.movie_titles[predictions[7][1]]
       return self.movie_titles[predictions[0][1]]
       ## Will need to write more functions for computing sims then returning best recommendation. ##
 
@@ -686,7 +662,7 @@ class Chatbot:
       — L’Belle always needs quotations around movies
       — \033[1m Using non-binarized dataset: \033[0;0m
           L’Belle uses non-binarized filtering
-      — \033[1m Fine-grained sentiment extraction:
+      — \033[1m Fine-grained sentiment extraction: \033[0;0m
           If you express strong sentiment about a move (“love”,”hate”, “really like”) L’Belle will rank that movie with a stronger
           intensity and respond with something like “Wow you really hated Titanic”
       — \033[1m Spell-checking movie titles: \033[0;0m

@@ -59,9 +59,9 @@ class Chatbot:
       self.can_array=["I'm sorry I don't know how to{}.", "I can't{}.", "I won't{}", "How do you{}?"]
       self.where_array=["I'm sorry I don't know where{} is...", "I'll check the map for{}", "I'm not familiar with{}", "I could not tell you where{} is."]
       self.what_array=["I don't know what{} is...", "Who knows what{} is?", "I'll look up{} and see what I find.", "I'll check{} out and get back to you."]
-      self.unknown_movie=['I\'m sorry, I don\'t think I have \"{}\"" in my database! Tell me about another movie that you have seen.', \
+      self.unknown_movie=['I\'m sorry, I don\'t think I have \"{}\" in my database! Tell me about another movie that you have seen.', \
         'I haven\'t heard of \"{}\"... I wonder if it\'s good.', 
-        'Is \"{}\"" the one where the girl meets the boy and...hm maybe not, I can\'t quite remember.'
+        'Is \"{}\" the one where the girl meets the boy and...hm maybe not, I can\'t quite remember.'
       ]
       self.spelling_clairifcation = ''
       self.original_input = ''
